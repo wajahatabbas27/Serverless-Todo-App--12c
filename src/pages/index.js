@@ -1,7 +1,12 @@
 import { Button, Container, Flex, Heading } from "@theme-ui/components";
-import React from "react";
+import React, { useEffect } from "react";
+import netlifyIdentity from "netlify-identity-widget";
 
-const index = () => {
+const Index = () => {
+  useEffect(() => {
+    netlifyIdentity.init({});
+  });
+
   return (
     <Container>
       <Flex sx={{ flexDirection: "column", padding: 3 }}>
@@ -9,7 +14,8 @@ const index = () => {
         <Button
           sx={{ marginTop: 2, color: "black" }}
           onClick={() => {
-            alert("Clicked");
+            //alert("Clicked");
+            netlifyIdentity.open();
           }}
         >
           Login
@@ -19,4 +25,4 @@ const index = () => {
   );
 };
 
-export default index;
+export default Index;
