@@ -13,7 +13,6 @@ const client = new ApolloClient({
     uri: "https://todo-app-12c-az.netlify.app/.netlify/functions/graphql",
   }),
 });
-
 exports.wrapRootElement = ({ element }) => {
   return (
     <ApolloProvider client={client}>
