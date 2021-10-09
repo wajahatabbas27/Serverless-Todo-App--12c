@@ -8,7 +8,7 @@ const myTheme = {
   sizes: { container: 1024 },
 };
 
-export const wrapRootElement = ({ element }) => {
+module.exports = ({ element }) => {
   return (
     <Provider>
       <ThemeProvider theme={myTheme}>{element}</ThemeProvider>;

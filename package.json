@@ -5,6 +5,7 @@
   "version": "0.1.0",
   "author": "Kyle Mathews <mathews.kyle@gmail.com>",
   "dependencies": {
+    "@apollo/client": "^3.4.16",
     "@reach/router": "^1.3.4",
     "@theme-ui/presets": "^0.11.3",
     "apollo-server-lambda": "^2.25.2",

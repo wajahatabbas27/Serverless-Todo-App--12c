@@ -1,4 +1,4 @@
-import React, { useContext, useReducer, useRef } from "react";
+import React, { useContext, useRef } from "react";
 import { Link } from "@reach/router";
 import {
   Container,
@@ -10,27 +10,63 @@ import {
   Checkbox,
 } from "theme-ui";
 import { IdentityContext } from "../../identity-context";
+import { gql, useMutation, useQuery } from "@apollo/client";
 
-const todosReducer = (state, action) => {
-  switch (action.type) {
-    case "addTodo":
-      return [{ done: false, value: action.payload }, ...state];
-    case "toggleTodoDone":
-      const newState = [...state];
-      newState[action.payload] = {
-        done: !state[action.payload].done,
-        value: state[action.payload].value,
-      };
-      return newState;
-    default:
-      return state;
+//mutation
+const ADD_TODO = gql`
+  mutation AddTodo($type: String!) {
+    addTodo(text: "one todo") {
+      id
+    }
   }
-};
+`;
+
+const UPDATE_TODO_DONE = gql`
+  mutation UpdateTodoDone($id: ID!) {
+    updateTodoDone(id: $id) {
+      text
+      done
+    }
+  }
+`;
+
+//QUERY GET_TODOS
+const GET_TODOS = gql`
+  query GetTodos {
+    todos {
+      id
+      text
+      done
+    }
+  }
+`;
+
+// const todosReducer = (state, action) => {
+//   switch (action.type) {
+//     case "addTodo":
+//       return [{ done: false, value: action.payload }, ...state];
+//     case "toggleTodoDone":
+//       const newState = [...state];
+//       newState[action.payload] = {
+//         done: !state[action.payload].done,
+//         value: state[action.payload].value,
+//       };
+//       return newState;
+//     default:
+//       return state;
+//   }
+// };
 
 let Dash = () => {
   const { user, identity: netlifyIdentity } = useContext(IdentityContext);
-  const [todos, dispatch] = useReducer(todosReducer, []);
+  // const [todos, dispatch] = useReducer(todosReducer, []);
+  const [addTodo] = useMutation(ADD_TODO);
+  const [updateTodoDone] = useMutation(UPDATE_TODO_DONE);
+  const { loading, error, data, refetch } = useQuery(GET_TODOS);
   const inputRef = useRef();
+
+  console.log(data);
+
   return (
     <Container>
       <Flex as='nav'>
@@ -56,10 +92,12 @@ let Dash = () => {
       <br />
       <Flex
         as='form'
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
-          dispatch({ type: "addTodo", payload: inputRef.current.value });
+          await addTodo({ variables: { text: inputRef.current.value } });
+          //dispatch({ type: "addTodo", payload: inputRef.current.value });
           inputRef.current.value = "";
+          await refetch();
         }}
       >
         <Label sx={{ display: "flex" }}>
@@ -70,19 +108,26 @@ let Dash = () => {
       </Flex>
 
       <Flex sx={{ flexDirection: "column" }}>
-        <ul sx={{ listStyleType: "none" }}>
-          {todos.map((todo, i) => (
-            <Flex
-              as='li'
-              onClick={() => {
-                dispatch({ type: "toggleTodoDone", payload: i });
-              }}
-            >
-              <Checkbox checked={todo.done} />
-              <span>{todo.value}</span>
-            </Flex>
-          ))}
-        </ul>
+        {loading ? <div>Loading....</div> : null}
+        {error ? <div>{error.message}</div> : null}
+        {!error && !loading && (
+          <ul sx={{ listStyleType: "none" }}>
+            {data.todos.map((todo) => (
+              <Flex
+                as='li'
+                key={todo.id}
+                onClick={async () => {
+                  await updateTodoDone({ variables: { id: todo.id } });
+                  await refetch();
+                  // dispatch({ type: "toggleTodoDone", payload: i });
+                }}
+              >
+                <Checkbox checked={todo.done} />
+                <span>{todo.text}</span>
+              </Flex>
+            ))}
+          </ul>
+        )}
       </Flex>
     </Container>
   );
